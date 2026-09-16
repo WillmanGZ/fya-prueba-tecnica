@@ -19,8 +19,14 @@ resource "aws_iam_role" "github_actions" {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
         }
+        # GitHub emits two sub formats depending on repo creation date (changed
+        # mid-2026): the legacy "org/repo" form, and a newer immutable-ID form
+        # ("org@id/repo@id") — both must be accepted or new repos get rejected.
         StringLike = {
-          "token.actions.githubusercontent.com:sub" = "repo:WillmanGZ/fya-prueba-tecnica:*"
+          "token.actions.githubusercontent.com:sub" = [
+            "repo:WillmanGZ/fya-prueba-tecnica:*",
+            "repo:WillmanGZ@143544629/fya-prueba-tecnica@*:*"
+          ]
         }
       }
     }]
