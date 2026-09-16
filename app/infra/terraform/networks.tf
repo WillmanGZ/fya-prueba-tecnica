@@ -161,3 +161,17 @@ resource "aws_route_table_association" "compute_b" {
   subnet_id      = aws_subnet.compute_b.id
   route_table_id = aws_route_table.private.id
 }
+
+# Lets ECS reach Secrets Manager privately to fetch the database credentials.
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.secretsmanager"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [aws_subnet.compute.id]
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.project_name}-secretsmanager-endpoint"
+  }
+}

@@ -34,6 +34,29 @@ resource "aws_ecs_task_definition" "app" {
         "awslogs-stream-prefix" = "app"
       }
     }
+
+    secrets = [
+      {
+        name      = "DB_HOST"
+        valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:host::"
+      },
+      {
+        name      = "DB_PORT"
+        valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:port::"
+      },
+      {
+        name      = "DB_NAME"
+        valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:dbname::"
+      },
+      {
+        name      = "DB_USER"
+        valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:username::"
+      },
+      {
+        name      = "DB_PASSWORD"
+        valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:password::"
+      }
+    ]
   }])
 }
 

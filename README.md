@@ -146,10 +146,10 @@ See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) _(pending)_ for the answers to Ap
 - [x] Requirements analysis and target architecture
 - [x] Architecture diagram (full flow + Security Groups)
 - [x] Network design in Terraform (VPC, subnets, endpoints)
-- [x] Minimal API + Dockerfile (hexagonal, TS, tests, multi-stage build — not yet run/pushed)
+- [x] Minimal API + Dockerfile (hexagonal, TS, tests, multi-stage build — verified end to end with `docker compose up`)
 - [x] ECS Fargate + ECR + ALB + NLB + Target Groups (Terraform written; not yet applied — no image pushed to ECR)
 - [x] API Gateway + VPC Link + WAF (Terraform written; not yet applied)
-- [ ] RDS PostgreSQL
+- [x] RDS PostgreSQL (Terraform written; not yet applied — Secrets Manager wired into the ECS task definition)
 - [ ] GitHub Actions pipeline (OIDC)
 - [ ] Read-only IAM user for evaluation
 - [ ] TROUBLESHOOTING.md (Appendix 1)

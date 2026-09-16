@@ -57,3 +57,15 @@ variable "private_compute_subnet_b_cidr" {
   default     = "10.0.4.0/24"
   description = "Private compute subnet in the second AZ, required by the ALB's 2-AZ rule — no active task runs here"
 }
+
+variable "db_name" {
+  type        = string
+  default     = "fya_prueba_tecnica"
+  description = "Name of the initial PostgreSQL database"
+}
+
+variable "db_username" {
+  type        = string
+  default     = "app_user"
+  description = "Master username for RDS"
+}
