@@ -12,8 +12,8 @@ variable "aws_region" {
 
 variable "api_stage_name" {
   type        = string
-  default     = "v1"
-  description = "API Gateway stage name — independent from the environment tag"
+  default     = "api"
+  description = "API Gateway stage name — independent from the environment tag. Named to avoid colliding visually with the app's own /api/v1/ route prefix."
 }
 
 variable "environment" {

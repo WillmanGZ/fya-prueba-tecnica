@@ -7,13 +7,14 @@
 QUICK EVALUATION TEST DATA
 ===================================================================
 1. Public Endpoint (API Gateway + WAF):
-   https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/v1/health
+   https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/health
 
 2. AWS Console Access (IAM ReadOnly for Reviewers):
    See the accompanying delivery document for the login URL, username, and temporary password.
 
 3. cURL test example:
-   curl -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/v1/health
+   curl -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/health
+   curl -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/v1/info
 ===================================================================
 ```
 
