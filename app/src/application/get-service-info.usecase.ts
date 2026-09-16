@@ -19,7 +19,6 @@ export class GetServiceInfoUseCase {
 
   private toDto(dbStatus: ServiceInfoDto["db_status"], dbTime: string | null): ServiceInfoDto {
     return {
-      status: dbStatus === "connected" ? "ok" : "error",
       db_status: dbStatus,
       db_time: dbTime,
     };

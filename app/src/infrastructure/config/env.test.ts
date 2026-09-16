@@ -27,4 +27,20 @@ describe("loadEnv", () => {
     expect(env.port).toBe(3000);
     expect(env.db.host).toBe("db.internal");
   });
+
+  it("leaves SSL off by default (local docker-compose Postgres has none)", () => {
+    delete process.env.DB_SSL;
+
+    const env = loadEnv();
+
+    expect(env.db.ssl).toBeUndefined();
+  });
+
+  it("enables SSL when DB_SSL=true (required by RDS's default parameter group)", () => {
+    process.env.DB_SSL = "true";
+
+    const env = loadEnv();
+
+    expect(env.db.ssl).toEqual({ rejectUnauthorized: false });
+  });
 });

@@ -6,6 +6,7 @@ export interface EnvConfig {
     database: string | undefined;
     user: string | undefined;
     password: string | undefined;
+    ssl: { rejectUnauthorized: false } | undefined;
   };
 }
 
@@ -21,6 +22,7 @@ export function loadEnv(): EnvConfig {
       database: process.env.DB_NAME,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
+      ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
     },
   };
 }

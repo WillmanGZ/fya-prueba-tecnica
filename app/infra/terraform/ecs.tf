@@ -35,6 +35,13 @@ resource "aws_ecs_task_definition" "app" {
       }
     }
 
+    environment = [
+      {
+        name  = "DB_SSL"
+        value = "true"
+      }
+    ]
+
     secrets = [
       {
         name      = "DB_HOST"
