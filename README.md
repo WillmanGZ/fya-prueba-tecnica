@@ -131,7 +131,7 @@ See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) _(pending)_ for the answers to Ap
 - [x] Architecture diagram (full flow + Security Groups)
 - [x] Network design in Terraform (VPC, subnets, endpoints)
 - [ ] Minimal API + Dockerfile
-- [ ] ECS Fargate + ECR + ALB + NLB + Target Groups
+- [x] ECS Fargate + ECR + ALB + NLB + Target Groups (Terraform written; not yet applied — no image pushed to ECR)
 - [ ] API Gateway + VPC Link + WAF
 - [ ] RDS PostgreSQL
 - [ ] GitHub Actions pipeline (OIDC)
