@@ -135,7 +135,28 @@ curl -i http://localhost:8080/api/v1/info
 
 ## CI/CD
 
-_Pending — documented alongside `.github/workflows/deploy.yml`._
+`.github/workflows/deploy.yml` runs on every push to `main`:
+
+1. **`validate`**: installs dependencies, lints, tests, and builds the app (`app/`).
+2. **`deploy`** (only if `validate` passes): authenticates to AWS via OIDC (no long-lived credentials), builds the Docker image tagged with the commit SHA and `latest`, pushes both to ECR, and forces ECS to redeploy with the new image.
+
+After running `terraform apply` in `app/infra/terraform/`, get the values the workflow needs:
+
+```bash
+terraform output github_actions_role_arn
+terraform output ecr_repository_url
+terraform output ecs_cluster_name
+terraform output ecs_service_name
+```
+
+Set them as **repository variables** (Settings → Secrets and variables → Actions → Variables — not Secrets, none of these are sensitive):
+
+| Variable | Value |
+|---|---|
+| `AWS_ROLE_ARN` | `terraform output github_actions_role_arn` |
+| `ECR_REPOSITORY_URL` | `terraform output ecr_repository_url` |
+| `ECS_CLUSTER_NAME` | `terraform output ecs_cluster_name` |
+| `ECS_SERVICE_NAME` | `terraform output ecs_service_name` |
 
 ## Troubleshooting
 
@@ -150,7 +171,7 @@ See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) _(pending)_ for the answers to Ap
 - [x] ECS Fargate + ECR + ALB + NLB + Target Groups (Terraform written; not yet applied — no image pushed to ECR)
 - [x] API Gateway + VPC Link + WAF (Terraform written; not yet applied)
 - [x] RDS PostgreSQL (Terraform written; not yet applied — Secrets Manager wired into the ECS task definition)
-- [ ] GitHub Actions pipeline (OIDC)
+- [x] GitHub Actions pipeline (OIDC) (workflow + Terraform OIDC role written; not yet run — repo variables not set)
 - [ ] Read-only IAM user for evaluation
 - [ ] TROUBLESHOOTING.md (Appendix 1)
 - [ ] Final deployment and access data in this README
