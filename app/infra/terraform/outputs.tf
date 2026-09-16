@@ -19,3 +19,27 @@ output "ecs_cluster_name" {
 output "ecs_service_name" {
   value = aws_ecs_service.app.name
 }
+
+# Exposes the public API Gateway URL — the endpoint to test with curl/Postman
+output "api_gateway_url" {
+  value       = aws_api_gateway_stage.main.invoke_url
+  description = "Public API Gateway URL, e.g. <url>/health"
+}
+
+# Exposes the console login URL for the read-only evaluator user
+output "eval_reviewer_console_login_url" {
+  value       = "https://${data.aws_caller_identity.current.account_id}.signin.aws.amazon.com/console"
+  description = "AWS Console login URL for the read-only evaluator user"
+}
+
+# Exposes the evaluator's username
+output "eval_reviewer_username" {
+  value = aws_iam_user.eval_reviewer.name
+}
+
+# Exposes the evaluator's temporary password
+output "eval_reviewer_temporary_password" {
+  value       = aws_iam_user_login_profile.eval_reviewer.password
+  sensitive   = true
+  description = "Temporary password — retrieve with: terraform output -raw eval_reviewer_temporary_password"
+}

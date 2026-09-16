@@ -7,20 +7,17 @@
 QUICK EVALUATION TEST DATA
 ===================================================================
 1. Public Endpoint (API Gateway + WAF):
-   [PENDING — filled in once deployed. Format:
-   https://<api-id>.execute-api.<region>.amazonaws.com/v1/health]
+   https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/v1/health
 
 2. AWS Console Access (IAM ReadOnly for Reviewers):
-   - AWS Login URL: [PENDING]
-   - Username: eval-devops-reviewer
-   - Temporary password: [PENDING]
+   See the accompanying delivery document for the login URL, username, and temporary password.
 
 3. cURL test example:
-   curl -i [PENDING]/health
+   curl -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/v1/health
 ===================================================================
 ```
 
-This block gets filled in at the end, once the infrastructure is deployed. In the meantime, this README documents the architecture and the decisions made, so that anyone (including the reviewer) can understand the "why" behind each component without having to guess.
+This README documents the architecture and the decisions made, so that anyone (including the reviewer) can understand the "why" behind each component without having to guess. AWS console credentials are delivered separately, not committed here.
 
 ## Objective
 
@@ -172,6 +169,6 @@ See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) _(pending)_ for the answers to Ap
 - [x] API Gateway + VPC Link + WAF (Terraform written; not yet applied)
 - [x] RDS PostgreSQL (Terraform written; not yet applied — Secrets Manager wired into the ECS task definition)
 - [x] GitHub Actions pipeline (OIDC) (workflow + Terraform OIDC role written; not yet run — repo variables not set)
-- [ ] Read-only IAM user for evaluation
+- [x] Read-only IAM user for evaluation (Terraform written; not yet applied — scoped to API Gateway, WAF, ALB, ECS, ECR, CloudWatch)
 - [ ] TROUBLESHOOTING.md (Appendix 1)
 - [ ] Final deployment and access data in this README
