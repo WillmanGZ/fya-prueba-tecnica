@@ -104,7 +104,7 @@ These are deliberate decisions to keep the project within Free Tier limits and a
 ```
 .
 ├── app/                     # Minimal API (health + info) and its Dockerfile
-├── terraform/               # IaC: VPC, WAF, API Gateway, VPC Link, NLB, ALB, ECS, ECR, RDS, IAM
+│   └── infra/terraform/     # IaC: VPC, WAF, API Gateway, VPC Link, NLB, ALB, ECS, ECR, RDS, IAM
 ├── .github/workflows/
 │   └── deploy.yml           # build → test → push to ECR → deploy to ECS
 ├── docker-compose.yml       # local stack (app + Postgres)

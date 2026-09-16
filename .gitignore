@@ -1,3 +1,21 @@
+# Node / TypeScript (app/)
+node_modules/
+dist/
+coverage/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment files with real secrets — .env.example stays tracked
+.env
+.env.local
+.env.*.local
+
+# Editor/OS noise
+.vscode/
+.DS_Store
+Thumbs.db
+
 # Local .terraform directories
 .terraform/
 
