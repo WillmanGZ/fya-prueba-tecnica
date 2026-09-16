@@ -19,6 +19,7 @@ El documento original de la prueba está en la raíz de `Fya/` (fuera de este re
 5. **Autenticación de GitHub Actions vía OIDC** (IAM Role federado), nunca Access Keys estáticas en secretos del repo.
 6. **Tagging de imágenes Docker:** siempre con el commit SHA (`${{ github.sha }}`) y adicionalmente `latest`.
 7. **Egress abierto (`0.0.0.0/0`) en todos los Security Groups**, solo el ingress está restringido por capa. Egress "perfecto" (sg-alb solo hacia sg-ecs, sg-ecs solo hacia sg-db + SG de endpoints) es más seguro pero implica enumerar y mantener cada destino legítimo; el ingress es el punto de control real (decide quién puede iniciar contacto), así que se prioriza tiempo de entrega sobre este endurecimiento extra. Revisar si se retoma más adelante.
+8. **`sg-alb` y `sg-vpce` restringen el ingress a `var.vpc_cidr` completo, no a IPs específicas** (las ENIs del VPC Link no se conocen antes del deploy). Es una limitación conocida y aceptada, no un descuido — hoy no es explotable porque nada más corre en la VPC que pueda iniciar esa conexión.
 
 ## Esquema de direccionamiento (CIDR)
 

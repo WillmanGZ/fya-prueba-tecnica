@@ -35,6 +35,10 @@ resource "aws_lb_target_group_attachment" "nlb_to_alb" {
   target_group_arn = aws_lb_target_group.nlb_to_alb.arn
   target_id        = aws_lb.alb.arn
   port             = 80
+
+  # AWS rejects an "alb" target registration until the ALB already has a
+  # listener on this port — Terraform can't infer that from the args above.
+  depends_on = [aws_lb_listener.alb]
 }
 
 # One target per running ECS task; health check drives who gets traffic

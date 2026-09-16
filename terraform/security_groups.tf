@@ -1,10 +1,11 @@
-# Only the VPC Link's ENIs (inside our VPC) may reach the ALB — nothing public.
+# Scoped to the whole VPC CIDR, not just the VPC Link's ENIs — their IPs aren't
+# known ahead of deploy. Nothing public can reach this either way (no IGW/NAT).
 resource "aws_security_group" "alb" {
   name_prefix = "${var.project_name}-alb-"
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description = "HTTP from within the VPC (VPC Link ENIs)"
+    description = "HTTP from within the VPC"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
