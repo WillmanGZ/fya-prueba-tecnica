@@ -128,7 +128,7 @@ See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) _(pending)_ for the answers to Ap
 
 - [x] Requirements analysis and target architecture
 - [x] Architecture diagram (full flow + Security Groups)
-- [ ] Network design in Terraform (VPC, subnets, endpoints)
+- [x] Network design in Terraform (VPC, subnets, endpoints)
 - [ ] Minimal API + Dockerfile
 - [ ] ECS Fargate + ECR + ALB + NLB + Target Groups
 - [ ] API Gateway + VPC Link + WAF
