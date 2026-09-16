@@ -10,6 +10,12 @@ variable "aws_region" {
   description = "AWS region where all resources are provisioned"
 }
 
+variable "api_stage_name" {
+  type        = string
+  default     = "v1"
+  description = "API Gateway stage name — independent from the environment tag"
+}
+
 variable "environment" {
   type        = string
   default     = "evaluation"

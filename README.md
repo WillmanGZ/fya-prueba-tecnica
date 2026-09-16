@@ -8,7 +8,7 @@ QUICK EVALUATION TEST DATA
 ===================================================================
 1. Public Endpoint (API Gateway + WAF):
    [PENDING — filled in once deployed. Format:
-   https://<api-id>.execute-api.<region>.amazonaws.com/<stage>/health]
+   https://<api-id>.execute-api.<region>.amazonaws.com/v1/health]
 
 2. AWS Console Access (IAM ReadOnly for Reviewers):
    - AWS Login URL: [PENDING]
