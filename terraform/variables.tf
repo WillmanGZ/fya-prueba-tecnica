@@ -45,3 +45,9 @@ variable "private_data_subnet_b_cidr" {
   default     = "10.0.3.0/24"
   description = "Private data subnet for RDS — required 2nd AZ, no active compute (AZ index 1)"
 }
+
+variable "private_compute_subnet_b_cidr" {
+  type        = string
+  default     = "10.0.4.0/24"
+  description = "Private compute subnet in the second AZ, required by the ALB's 2-AZ rule — no active task runs here"
+}

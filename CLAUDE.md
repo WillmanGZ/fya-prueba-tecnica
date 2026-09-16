@@ -24,10 +24,13 @@ El documento original de la prueba está en la raíz de `Fya/` (fuera de este re
 
 ```
 10.0.0.0/16   VPC
-10.0.1.0/24   subnet privada de cómputo (NLB, ALB, ECS)   us-east-1a
-10.0.2.0/24   subnet privada de datos (RDS)                us-east-1a
-10.0.3.0/24   subnet privada de datos (RDS standby/AZ)     us-east-1b
+10.0.1.0/24   subnet privada de cómputo (NLB, ALB, ECS)          us-east-1a
+10.0.2.0/24   subnet privada de datos (RDS)                       us-east-1a
+10.0.3.0/24   subnet privada de datos (RDS, requerida por AWS)    us-east-1b
+10.0.4.0/24   subnet privada de cómputo (solo ALB, requerida por AWS) us-east-1b
 ```
+
+Tanto RDS como el ALB exigen recursos en 2 AZs distintas (regla de la plataforma, no elección de diseño), por eso hay subnets "vacías" sin carga activa en `us-east-1b`.
 
 No usar rangos superpuestos si se agregan más subnets — seguir la convención `/24` por subnet dentro del `/16`.
 

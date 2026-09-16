@@ -81,12 +81,13 @@ Each Security Group only allows traffic from the immediately preceding hop. Noth
 
 ```
 10.0.0.0/16        → full VPC (65,536 IPs)
-10.0.1.0/24        → private compute subnet (NLB + ALB + ECS)   AZ: us-east-1a
-10.0.2.0/24        → private data subnet (RDS)                   AZ: us-east-1a
-10.0.3.0/24        → private data subnet (RDS, standby)          AZ: us-east-1b
+10.0.1.0/24        → private compute subnet (NLB + ALB + ECS)         AZ: us-east-1a
+10.0.2.0/24        → private data subnet (RDS)                         AZ: us-east-1a
+10.0.3.0/24        → private data subnet (RDS, required 2nd AZ)        AZ: us-east-1b
+10.0.4.0/24        → private compute subnet (ALB only, required 2nd AZ) AZ: us-east-1b
 ```
 
-`10.0.0.0/16` was chosen because it's the largest available private range (RFC 1918) and the convention most commonly used in Terraform examples/modules — there is no technical requirement to use that exact range. Data subnets exist in **2 different AZs** because RDS requires a "DB Subnet Group" spanning at least 2 AZs, even without the Multi-AZ feature enabled (see below).
+`10.0.0.0/16` was chosen because it's the largest available private range (RFC 1918) and the convention most commonly used in Terraform examples/modules — there is no technical requirement to use that exact range. Both RDS and the ALB require spanning **2 different AZs** — a platform requirement, not a design choice — even without RDS Multi-AZ enabled and with a single ECS task. That's why `10.0.3.0/24` and `10.0.4.0/24` exist with no active workload running in them.
 
 ## Architecture decisions (and why)
 

@@ -146,4 +146,18 @@ resource "aws_vpc_endpoint" "logs" {
   }
 }
 
+# Second AZ required by the ALB — no active ECS task runs here.
+resource "aws_subnet" "compute_b" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.private_compute_subnet_b_cidr
+  availability_zone = var.azs[1]
 
+  tags = {
+    Name = "${var.project_name}-compute-subnet-b"
+  }
+}
+
+resource "aws_route_table_association" "compute_b" {
+  subnet_id      = aws_subnet.compute_b.id
+  route_table_id = aws_route_table.private.id
+}
