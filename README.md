@@ -115,7 +115,23 @@ These are deliberate decisions to keep the project within Free Tier limits and a
 
 ## Running locally
 
-_Pending — documented alongside `docker-compose.yml`._
+Requires Docker and Docker Compose.
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+This starts Postgres and the API together — the app waits for Postgres to pass its own health check before starting (`depends_on: condition: service_healthy`), not just for the container to boot.
+
+Test it:
+
+```bash
+curl -i http://localhost:8080/health
+curl -i http://localhost:8080/api/v1/info
+```
+
+`/api/v1/info` should report `"db_status": "connected"` with a real timestamp from Postgres, confirming the full `app → Postgres` chain works end to end.
 
 ## CI/CD
 
@@ -130,9 +146,9 @@ See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) _(pending)_ for the answers to Ap
 - [x] Requirements analysis and target architecture
 - [x] Architecture diagram (full flow + Security Groups)
 - [x] Network design in Terraform (VPC, subnets, endpoints)
-- [ ] Minimal API + Dockerfile
+- [x] Minimal API + Dockerfile (hexagonal, TS, tests, multi-stage build — not yet run/pushed)
 - [x] ECS Fargate + ECR + ALB + NLB + Target Groups (Terraform written; not yet applied — no image pushed to ECR)
-- [ ] API Gateway + VPC Link + WAF
+- [x] API Gateway + VPC Link + WAF (Terraform written; not yet applied)
 - [ ] RDS PostgreSQL
 - [ ] GitHub Actions pipeline (OIDC)
 - [ ] Read-only IAM user for evaluation

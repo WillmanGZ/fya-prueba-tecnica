@@ -1,0 +1,6 @@
+minimumReleaseAge: 1440
+overrides:
+  proxy-addr: "2.0.7"
+
+allowBuilds:
+  esbuild: true
