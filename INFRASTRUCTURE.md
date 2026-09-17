@@ -12,6 +12,8 @@ Internet → AWS WAF → API Gateway (REST) → VPC Link → ALB Interno → ECS
 
 ## Arquitectura
 
+![Diagrama de arquitectura](./docs/fya-prueba-tecnica-architecture.jpeg)
+
 ### Resumen del flujo de tráfico
 
 ```
