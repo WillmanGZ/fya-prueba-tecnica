@@ -6,8 +6,9 @@
 ===================================================================
 DATOS PARA PRUEBA RÁPIDA DE EVALUACIÓN
 ===================================================================
-1. Endpoint Público (API Gateway + WAF):
+1. Endpoints Públicos (API Gateway + WAF):
    https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/health
+   https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/v1/info
 
 2. Acceso a Consola AWS (IAM ReadOnly para Evaluadores):
    - URL de Login AWS: https://508575763101.signin.aws.amazon.com/console?region=us-east-1
