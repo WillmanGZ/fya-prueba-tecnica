@@ -45,20 +45,6 @@ curl -i http://localhost:8080/api/v1/info
 
 Ver [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) para las respuestas al Anexo 1 de la prueba técnica.
 
-## Estado del proyecto
-
-- [x] Análisis de requisitos y arquitectura objetivo
-- [x] Diagrama de arquitectura (flujo completo + Security Groups)
-- [x] Diseño de red en Terraform (VPC, subnets, endpoints)
-- [x] API mínima + Dockerfile (hexagonal, TS, tests, multi-stage build — verificado de punta a punta con `docker compose up`)
-- [x] ECS Fargate + ECR + ALB + NLB + Target Groups (desplegado y en funcionamiento)
-- [x] API Gateway + VPC Link + WAF (desplegado y en funcionamiento)
-- [x] RDS PostgreSQL (desplegado, conectado por TLS, verificado de punta a punta vía `/api/v1/info`)
-- [x] Pipeline de GitHub Actions (OIDC) (desplegado exitosamente — build, push y redeploy de ECS funcionando)
-- [x] Usuario IAM de solo lectura para evaluación (desplegado — credenciales en el README)
-- [x] TROUBLESHOOTING.md (Anexo 1)
-- [x] Datos finales de despliegue y acceso en el README
-
 ## Más información
 
 - [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) — arquitectura de AWS, estructura del repositorio, CI/CD y estado del proyecto.

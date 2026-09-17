@@ -25,23 +25,23 @@ describe("createExpressApp", () => {
     expect(res.body.data.timestamp).toEqual(expect.any(String));
   });
 
-  it("GET /v1/info returns 200 when the db is reachable", async () => {
+  it("GET /api/v1/info returns 200 when the db is reachable", async () => {
     const app = buildApp({ now: async () => new Date("2026-01-01T00:00:00.000Z") });
 
-    const res = await request(app).get("/v1/info");
+    const res = await request(app).get("/api/v1/info");
 
     expect(res.status).toBe(200);
     expect(res.body.data.db_status).toBe("connected");
   });
 
-  it("GET /v1/info returns 503 when the db is unreachable", async () => {
+  it("GET /api/v1/info returns 503 when the db is unreachable", async () => {
     const app = buildApp({
       now: async () => {
         throw new InfoUnavailableError(new Error("down"));
       },
     });
 
-    const res = await request(app).get("/v1/info");
+    const res = await request(app).get("/api/v1/info");
 
     expect(res.status).toBe(503);
     expect(res.body.data.db_status).toBe("unreachable");

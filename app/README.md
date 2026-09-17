@@ -9,6 +9,7 @@ This document covers the implementation details of the microservice itself. For 
 - **pg** (node-postgres) for the PostgreSQL connection.
 - **Vitest + Supertest** for testing.
 - **pino / pino-http** for structured JSON logging.
+- **helmet** for HTTP security headers.
 - **pnpm 12** as package manager (workspace-based supply-chain config, see below).
 
 ## Architecture: hexagonal (ports & adapters)
@@ -33,7 +34,7 @@ src/
 │   │   ├── api-response.ts            # ok()/fail() response envelope
 │   │   └── routes/
 │   │       ├── health.route.ts        # GET /health
-│   │       ├── service-info.route.ts  # GET /v1/info
+│   │       ├── service-info.route.ts  # GET /api/v1/info
 │   │       └── docs.route.ts          # GET /docs, /openapi.json — dev-only, see below
 │   ├── persistence/
 │   │   └── postgres-info.repository.ts # Implements InfoRepository against pg.Pool
@@ -50,11 +51,18 @@ The rule: `domain/` and `application/` never import from `infrastructure/`. `inf
 | Method | Path | Purpose |
 |---|---|---|
 | `GET` | `/health` | Liveness check, `200` with a static JSON body. Used by the ALB target group and the Docker `HEALTHCHECK`. |
-| `GET` | `/v1/info` | Queries Postgres (`SELECT NOW()`) and reports `db_status: "connected" \| "unreachable"` plus `db_time`. Proves the full `app → Postgres` chain works, not just that the process is alive. |
+| `GET` | `/api/v1/info` | Queries Postgres (`SELECT NOW()`) and reports `db_status: "connected" \| "unreachable"` plus `db_time`. Proves the full `app → Postgres` chain works, not just that the process is alive. |
 | `GET` | `/docs` | Interactive Swagger UI, generated from [`openapi.yaml`](./openapi.yaml). **Dev-only** — see below. |
 | `GET` | `/openapi.json` | The raw OpenAPI spec. **Dev-only** — see below. |
 
 Both application endpoints are wrapped in the same envelope (`api-response.ts`): `{ success: boolean, data?: ..., error?: ... }`.
+
+## Robustness
+
+- `helmet()` on every response (HSTS, `X-Content-Type-Options`, drops `X-Powered-By`, etc).
+- Graceful shutdown on `SIGTERM`/`SIGINT`: closes the HTTP server before exiting so in-flight requests finish, then closes the Postgres pool.
+- `pool.on("error", ...)`: logs idle-client pool errors instead of crashing the process.
+- `Authorization`/`Cookie` headers redacted in the HTTP access logs.
 
 ## API documentation
 
@@ -76,7 +84,7 @@ Read and validated in [`src/infrastructure/config/env.ts`](./src/infrastructure/
 | `DB_NAME` | — | Database name. |
 | `DB_USER` | — | Database user. |
 | `DB_PASSWORD` | — | Database password. |
-| `DB_SSL` | unset (no SSL) | Set to `"true"` to connect with `{ rejectUnauthorized: false }`. Required against RDS, whose default parameter group has `rds.force_ssl = 1` — without this, the connection fails with `no pg_hba.conf entry ... no encryption`. `rejectUnauthorized: false` skips CA validation, which is acceptable only because the connection stays inside a Security-Group-isolated VPC. |
+| `DB_SSL` | unset (no SSL) | Set to `"true"` to connect over TLS with the certificate verified against AWS's RDS CA bundle (`rejectUnauthorized: true`). Required against RDS, whose default parameter group has `rds.force_ssl = 1` — without this, the connection fails with `no pg_hba.conf entry ... no encryption`. |
 
 See [`.env.example`](../.env.example) at the repo root for local defaults.
 
@@ -118,6 +126,7 @@ Other decisions baked into the image:
 - Runs as a **non-root user** (`appuser`), not the container default `root`.
 - Has a Docker-level `HEALTHCHECK` hitting `/health` — this is what ECS itself checks to decide if the task is alive, independent of (and earlier than) the ALB target group's own health check.
 - `pnpm-workspace.yaml` at the repo root controls pnpm 12's supply-chain policy (`minimumReleaseAge`, `allowBuilds`) — both build and runtime stages need it copied alongside `package.json`/`pnpm-lock.yaml`, or `pnpm install` fails with a lockfile-config mismatch.
+- The `build` stage downloads AWS's RDS CA bundle (`curl`, discarded with the rest of that stage) and copies just the resulting file into `runtime` — it's never committed to the repo, only baked into the image.
 
 ## Running only the app (without the full docker-compose stack)
 
