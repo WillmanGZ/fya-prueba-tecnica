@@ -1,6 +1,11 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 
+# Pulls whatever patched package versions Alpine's repo currently has (e.g. openssl
+# CVE fixes) at build time — independent of whether the node:24-alpine tag itself
+# has been refreshed upstream since the last CVE disclosure.
+RUN apk update && apk upgrade --no-cache
+
 # corepack ships with Node itself, no need to npm-install pnpm separately.
 RUN corepack enable && corepack prepare pnpm@12.4.2 --activate
 
@@ -17,6 +22,9 @@ FROM node:24-alpine AS runtime
 WORKDIR /app
 
 ENV NODE_ENV=production
+
+# Same reasoning as the build stage — this is the layer that actually ships to ECR/ECS.
+RUN apk update && apk upgrade --no-cache
 
 RUN corepack enable && corepack prepare pnpm@12.4.2 --activate
 

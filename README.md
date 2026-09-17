@@ -1,6 +1,6 @@
 # fya-prueba-tecnica — Ingeniero DevOps Cloud
 
-> Prueba técnica de 48h: microservicio contenerizado desplegado en AWS Free Tier detrás de WAF, API Gateway, VPC Link, un ALB interno y ECS Fargate.
+> Prueba técnica de 48h: microservicio contenerizado desplegado en AWS detrás de WAF, API Gateway, VPC Link, un ALB interno y ECS Fargate.
 
 ```
 ===================================================================
@@ -12,8 +12,8 @@ DATOS PARA PRUEBA RÁPIDA DE EVALUACIÓN
 2. Acceso a Consola AWS (IAM ReadOnly para Evaluadores):
    - URL de Login AWS: https://508575763101.signin.aws.amazon.com/console
    - Usuario: eval-devops-reviewer
-   - Contraseña temporal: htkcps!v2*ly_znY'4Yd
-   (La contraseña es temporal — AWS exigirá cambiarla en el primer inicio de sesión. El usuario tiene permisos de solo lectura, acotados a API Gateway, WAF, ALB, ECS, ECR y CloudWatch.)
+   - Contraseña temporal: A3B3mSkMUHelFB
+   (El usuario tiene permisos de solo lectura, acotados a API Gateway, WAF, ALB, ECS, ECR y CloudWatch.)
 
 3. Ejemplo de prueba con cURL:
    curl -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/health

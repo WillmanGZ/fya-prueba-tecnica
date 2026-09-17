@@ -36,6 +36,12 @@ resource "aws_iam_user_policy" "eval_reviewer_readonly" {
           "logs:FilterLogEvents"
         ]
         Resource = "*"
+      },
+      {
+        # Required for the forced password reset on first login
+        Effect   = "Allow"
+        Action   = "iam:ChangePassword"
+        Resource = "arn:aws:iam::*:user/$${aws:username}"
       }
     ]
   })
