@@ -10,9 +10,9 @@ DATOS PARA PRUEBA RÁPIDA DE EVALUACIÓN
    https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/health
 
 2. Acceso a Consola AWS (IAM ReadOnly para Evaluadores):
-   - URL de Login AWS: https://508575763101.signin.aws.amazon.com/console
+   - URL de Login AWS: https://508575763101.signin.aws.amazon.com/console?region=us-east-1
    - Usuario: eval-devops-reviewer
-   - Contraseña temporal: A3B3mSkMUHelFB
+   - Contraseña: A3B3mSkMUHelFB
    (El usuario tiene permisos de solo lectura, acotados a API Gateway, WAF, ALB, ECS, ECR y CloudWatch.)
 
 3. Ejemplo de prueba con cURL:
