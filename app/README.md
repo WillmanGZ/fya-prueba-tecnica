@@ -33,7 +33,8 @@ src/
 │   │   ├── api-response.ts            # ok()/fail() response envelope
 │   │   └── routes/
 │   │       ├── health.route.ts        # GET /health
-│   │       └── service-info.route.ts  # GET /v1/info
+│   │       ├── service-info.route.ts  # GET /v1/info
+│   │       └── docs.route.ts          # GET /docs, /openapi.json — dev-only, see below
 │   ├── persistence/
 │   │   └── postgres-info.repository.ts # Implements InfoRepository against pg.Pool
 │   └── logging/
@@ -50,14 +51,18 @@ The rule: `domain/` and `application/` never import from `infrastructure/`. `inf
 |---|---|---|
 | `GET` | `/health` | Liveness check, `200` with a static JSON body. Used by the ALB target group and the Docker `HEALTHCHECK`. |
 | `GET` | `/v1/info` | Queries Postgres (`SELECT NOW()`) and reports `db_status: "connected" \| "unreachable"` plus `db_time`. Proves the full `app → Postgres` chain works, not just that the process is alive. |
-| `GET` | `/docs` | Interactive Swagger UI, generated from [`openapi.yaml`](./openapi.yaml). |
-| `GET` | `/openapi.json` | The raw OpenAPI spec, for tooling that consumes it directly instead of the UI. |
+| `GET` | `/docs` | Interactive Swagger UI, generated from [`openapi.yaml`](./openapi.yaml). **Dev-only** — see below. |
+| `GET` | `/openapi.json` | The raw OpenAPI spec. **Dev-only** — see below. |
 
 Both application endpoints are wrapped in the same envelope (`api-response.ts`): `{ success: boolean, data?: ..., error?: ... }`.
 
 ## API documentation
 
-The API contract lives as code in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.0), served interactively at `/docs` (see [`docs.route.ts`](./src/infrastructure/http/routes/docs.route.ts)) — it's read from disk once at startup, not regenerated per request. The exported functions, classes, and interfaces across `domain/`, `application/`, and `infrastructure/` also carry JSDoc/TSDoc comments describing their contracts (return values, thrown errors), so IDEs surface them on hover without needing to open the source file.
+The API contract lives as code in [`openapi.yaml`](./openapi.yaml) (OpenAPI 3.0), served interactively at `/docs` (see [`docs.route.ts`](./src/infrastructure/http/routes/docs.route.ts)) — built once at startup, not regenerated per request.
+
+`/docs` and `/openapi.json` are **not public**: [`express-app.ts`](./src/infrastructure/http/express-app.ts) only mounts them when `NODE_ENV !== "production"`. The Docker image sets `NODE_ENV=production`, so neither the real AWS deployment nor `docker compose up` ever expose them — they only exist when running `pnpm run dev` on a developer's own machine.
+
+The exported functions, classes, and interfaces across `domain/`, `application/`, and `infrastructure/` also carry JSDoc/TSDoc comments describing their contracts (return values, thrown errors), so IDEs surface them on hover without needing to open the source file.
 
 ## Environment variables
 

@@ -55,4 +55,25 @@ describe("createExpressApp", () => {
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ success: false, error: { message: "Not found" } });
   });
+
+  it("GET /docs is available outside production", async () => {
+    const app = buildApp({ now: async () => new Date() });
+
+    const res = await request(app).get("/docs");
+
+    expect(res.status).toBe(200);
+  });
+
+  it("GET /docs does not exist when NODE_ENV=production, matching the deployed container", async () => {
+    const original = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+
+    try {
+      const app = buildApp({ now: async () => new Date() });
+      const res = await request(app).get("/docs");
+      expect(res.status).toBe(404);
+    } finally {
+      process.env.NODE_ENV = original;
+    }
+  });
 });

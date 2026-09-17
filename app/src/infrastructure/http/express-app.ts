@@ -15,7 +15,13 @@ export function createExpressApp(getServiceInfo: GetServiceInfoUseCase): Express
 
   app.use(healthRouter);
   app.use(createServiceInfoRouter(getServiceInfo));
-  app.use(createDocsRouter());
+
+  // Dev-only: the Docker image (both the real ECS deployment and local
+  // `docker compose up`) sets NODE_ENV=production, so /docs never exists
+  // outside a developer's own machine running `pnpm run dev`.
+  if (process.env.NODE_ENV !== "production") {
+    app.use(createDocsRouter());
+  }
 
   app.use((_req, res) => {
     res.status(404).json(fail("Not found"));
