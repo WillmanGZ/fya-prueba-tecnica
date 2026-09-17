@@ -17,6 +17,12 @@ DATOS PARA PRUEBA RÁPIDA DE EVALUACIÓN
    (El usuario tiene permisos de solo lectura, acotados a API Gateway, WAF, ALB, ECS, ECR y CloudWatch.)
 
 3. Ejemplo de prueba con cURL:
+
+   Windows:
+   curl.exe -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/health
+   curl.exe -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/v1/info
+
+   Linux / macOS:
    curl -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/health
    curl -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/v1/info
 ===================================================================
@@ -36,10 +42,19 @@ Requiere Docker y Docker Compose.
    ```
    La app espera a que Postgres pase su propio health check antes de arrancar (`depends_on: condition: service_healthy`), no solo a que el contenedor inicie.
 3. Pruébalo:
+
+   Windows (PowerShell/cmd):
+   ```powershell
+   curl.exe -i http://localhost:8080/api/health
+   curl.exe -i http://localhost:8080/api/v1/info
+   ```
+
+   Linux / macOS:
    ```bash
    curl -i http://localhost:8080/api/health
    curl -i http://localhost:8080/api/v1/info
    ```
+
    `/api/v1/info` debería reportar `"db_status": "connected"` con un timestamp real de Postgres, confirmando que toda la cadena `app → Postgres` funciona de punta a punta.
 
 ## Troubleshooting
