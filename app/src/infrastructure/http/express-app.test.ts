@@ -11,14 +11,14 @@ function buildApp(infoRepository: InfoRepository) {
 }
 
 describe("createExpressApp", () => {
-  it("GET /health never touches the database", async () => {
+  it("GET /api/health never touches the database", async () => {
     const app = buildApp({
       now: async () => {
         throw new Error("should never be called");
       },
     });
 
-    const res = await request(app).get("/health");
+    const res = await request(app).get("/api/health");
 
     expect(res.status).toBe(200);
     expect(res.body.data.status).toBe("ok");

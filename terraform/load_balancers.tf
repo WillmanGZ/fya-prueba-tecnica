@@ -50,7 +50,7 @@ resource "aws_lb_target_group" "alb_to_ecs" {
   target_type = "ip"
 
   health_check {
-    path                = "/health"
+    path                = "/api/health"
     port                = "traffic-port"
     healthy_threshold   = 2
     unhealthy_threshold = 3

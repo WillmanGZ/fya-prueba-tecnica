@@ -26,21 +26,21 @@ DATOS PARA PRUEBA RÁPIDA DE EVALUACIÓN
 
 Requiere Docker y Docker Compose.
 
-```bash
-cp .env.example .env
-docker compose up --build
-```
-
-Esto levanta Postgres y la API juntos — la app espera a que Postgres pase su propio health check antes de arrancar (`depends_on: condition: service_healthy`), no solo a que el contenedor inicie.
-
-Probarlo:
-
-```bash
-curl -i http://localhost:8080/health
-curl -i http://localhost:8080/api/v1/info
-```
-
-`/api/v1/info` debería reportar `"db_status": "connected"` con un timestamp real de Postgres, confirmando que toda la cadena `app → Postgres` funciona de punta a punta.
+1. Copia `.env.example` y renómbralo a `.env` (el proyecto necesita este archivo para arrancar; sin él, `docker compose up` falla):
+   ```bash
+   cp .env.example .env
+   ```
+2. Levanta el stack (app + Postgres):
+   ```bash
+   docker compose up --build
+   ```
+   La app espera a que Postgres pase su propio health check antes de arrancar (`depends_on: condition: service_healthy`), no solo a que el contenedor inicie.
+3. Pruébalo:
+   ```bash
+   curl -i http://localhost:8080/api/health
+   curl -i http://localhost:8080/api/v1/info
+   ```
+   `/api/v1/info` debería reportar `"db_status": "connected"` con un timestamp real de Postgres, confirmando que toda la cadena `app → Postgres` funciona de punta a punta.
 
 ## Troubleshooting
 

@@ -23,7 +23,7 @@ output "ecs_service_name" {
 # Exposes the public API Gateway URL — the endpoint to test with curl/Postman
 output "api_gateway_url" {
   value       = aws_api_gateway_stage.main.invoke_url
-  description = "Public API Gateway URL, e.g. <url>/health"
+  description = "Public API Gateway URL, e.g. <url>/api/health"
 }
 
 # Exposes the console login URL for the read-only evaluator user

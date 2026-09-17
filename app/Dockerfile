@@ -48,7 +48,7 @@ USER appuser
 
 # ECS reads this to decide if the task is alive at all, independent of (and earlier than) the ALB target group's own HTTP health check.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-CMD wget -qO- http://localhost:8080/health || exit 1
+CMD wget -qO- http://localhost:8080/api/health || exit 1
 
 EXPOSE 8080
 CMD ["node", "dist/index.js"]

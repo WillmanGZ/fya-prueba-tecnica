@@ -33,7 +33,7 @@ src/
 │   │   ├── express-app.ts
 │   │   ├── api-response.ts            # ok()/fail() response envelope
 │   │   └── routes/
-│   │       ├── health.route.ts        # GET /health
+│   │       ├── health.route.ts        # GET /api/health
 │   │       ├── service-info.route.ts  # GET /api/v1/info
 │   │       └── docs.route.ts          # GET /docs, /openapi.json — dev-only, see below
 │   ├── persistence/
@@ -50,7 +50,7 @@ The rule: `domain/` and `application/` never import from `infrastructure/`. `inf
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/health` | Liveness check, `200` with a static JSON body. Used by the ALB target group and the Docker `HEALTHCHECK`. |
+| `GET` | `/api/health` | Liveness check, `200` with a static JSON body. Used by the ALB target group and the Docker `HEALTHCHECK`. |
 | `GET` | `/api/v1/info` | Queries Postgres (`SELECT NOW()`) and reports `db_status: "connected" \| "unreachable"` plus `db_time`. Proves the full `app → Postgres` chain works, not just that the process is alive. |
 | `GET` | `/docs` | Interactive Swagger UI, generated from [`openapi.yaml`](./openapi.yaml). **Dev-only** — see below. |
 | `GET` | `/openapi.json` | The raw OpenAPI spec. **Dev-only** — see below. |
@@ -124,7 +124,7 @@ Multi-stage build ([`Dockerfile`](./Dockerfile)):
 
 Other decisions baked into the image:
 - Runs as a **non-root user** (`appuser`), not the container default `root`.
-- Has a Docker-level `HEALTHCHECK` hitting `/health` — this is what ECS itself checks to decide if the task is alive, independent of (and earlier than) the ALB target group's own health check.
+- Has a Docker-level `HEALTHCHECK` hitting `/api/health` — this is what ECS itself checks to decide if the task is alive, independent of (and earlier than) the ALB target group's own health check.
 - `pnpm-workspace.yaml` at the repo root controls pnpm 12's supply-chain policy (`minimumReleaseAge`, `allowBuilds`) — both build and runtime stages need it copied alongside `package.json`/`pnpm-lock.yaml`, or `pnpm install` fails with a lockfile-config mismatch.
 - The `build` stage downloads AWS's RDS CA bundle (`curl`, discarded with the rest of that stage) and copies just the resulting file into `runtime` — it's never committed to the repo, only baked into the image.
 
