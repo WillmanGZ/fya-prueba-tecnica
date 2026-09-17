@@ -2,6 +2,7 @@
 node_modules/
 dist/
 coverage/
+app/certs/
 *.log
 npm-debug.log*
 pnpm-debug.log*

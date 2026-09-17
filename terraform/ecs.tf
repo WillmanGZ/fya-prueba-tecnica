@@ -65,6 +65,10 @@ resource "aws_ecs_task_definition" "app" {
       }
     ]
   }])
+
+  lifecycle {
+    ignore_changes = [container_definitions]
+  }
 }
 
 resource "aws_ecs_service" "app" {
@@ -84,6 +88,10 @@ resource "aws_ecs_service" "app" {
     target_group_arn = aws_lb_target_group.alb_to_ecs.arn
     container_name   = "app"
     container_port   = 8080
+  }
+
+  lifecycle {
+    ignore_changes = [task_definition]
   }
 
   depends_on = [aws_lb_listener.alb]

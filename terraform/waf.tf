@@ -29,6 +29,29 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
+  # AWS-managed OWASP Top 10 rule set (XSS, SQLi, etc).
+  rule {
+    name     = "aws-managed-common-rule-set"
+    priority = 2
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${var.project_name}-common-rule-set"
+      sampled_requests_enabled   = true
+    }
+  }
+
   visibility_config {
     cloudwatch_metrics_enabled = true
     metric_name                = "${var.project_name}-waf"

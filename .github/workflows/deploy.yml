@@ -28,8 +28,24 @@ jobs:
       - run: pnpm run test
       - run: pnpm run build
 
+  validate-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.8"
+
+      - run: terraform fmt -check -recursive
+        working-directory: terraform
+      - run: terraform init -backend=false
+        working-directory: terraform
+      - run: terraform validate
+        working-directory: terraform
+
   deploy:
-    needs: validate
+    needs: [validate, validate-terraform]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -56,5 +72,21 @@ jobs:
           docker push $ECR_REPOSITORY_URL:${{ github.sha }}
           docker push $ECR_REPOSITORY_URL:latest
 
-      - name: Redeploy ECS service
-        run: aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+      # Registers a new revision pinned to this commit's image tag.
+      - name: Register new task definition revision
+        id: register-task-def
+        run: |
+          CURRENT_TASK_DEF_ARN=$(aws ecs describe-services --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE" \
+            --query 'services[0].taskDefinition' --output text)
+          TASK_DEF=$(aws ecs describe-task-definition --task-definition "$CURRENT_TASK_DEF_ARN" --query 'taskDefinition')
+          NEW_TASK_DEF=$(echo "$TASK_DEF" | jq --arg IMAGE "$ECR_REPOSITORY_URL:${{ github.sha }}" \
+            '.containerDefinitions[0].image = $IMAGE |
+             del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+          NEW_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEF" --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "task_def_arn=$NEW_ARN" >> "$GITHUB_OUTPUT"
+
+      - name: Redeploy ECS service on the new revision
+        run: |
+          aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" \
+            --task-definition "${{ steps.register-task-def.outputs.task_def_arn }}"
+          aws ecs wait services-stable --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE"

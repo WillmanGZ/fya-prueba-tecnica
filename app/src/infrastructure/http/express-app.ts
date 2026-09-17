@@ -1,4 +1,5 @@
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
+import helmet from "helmet";
 import type { GetServiceInfoUseCase } from "../../application/get-service-info.usecase";
 import { healthRouter } from "./routes/health.route";
 import { createServiceInfoRouter } from "./routes/service-info.route";
@@ -10,6 +11,9 @@ import { logger } from "../logging/logger";
 /** Wires routes and middleware. Does not call `app.listen` — that's `index.ts`'s job, so the app stays testable with Supertest. */
 export function createExpressApp(getServiceInfo: GetServiceInfoUseCase): Express {
   const app = express();
+
+  app.use(helmet());
+  app.use(express.json({ limit: "10kb" }));
 
   app.use(httpLogger);
 

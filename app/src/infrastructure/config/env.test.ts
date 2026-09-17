@@ -1,5 +1,9 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadEnv } from "./env";
+
+vi.mock("node:fs", () => ({
+  readFileSync: () => "-----BEGIN CERTIFICATE-----\nfake\n-----END CERTIFICATE-----",
+}));
 
 describe("loadEnv", () => {
   const originalEnv = { ...process.env };
@@ -36,11 +40,12 @@ describe("loadEnv", () => {
     expect(env.db.ssl).toBeUndefined();
   });
 
-  it("enables SSL when DB_SSL=true (required by RDS's default parameter group)", () => {
+  it("enables SSL with a verified CA when DB_SSL=true (required by RDS's default parameter group)", () => {
     process.env.DB_SSL = "true";
 
     const env = loadEnv();
 
-    expect(env.db.ssl).toEqual({ rejectUnauthorized: false });
+    expect(env.db.ssl?.rejectUnauthorized).toBe(true);
+    expect(env.db.ssl?.ca).toContain("BEGIN CERTIFICATE");
   });
 });

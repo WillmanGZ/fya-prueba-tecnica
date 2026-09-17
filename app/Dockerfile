@@ -17,6 +17,11 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN pnpm run build
 
+# RDS CA bundle, used to verify Postgres's TLS certificate.
+RUN apk add --no-cache curl && \
+    mkdir certs && \
+    curl -fsSL -o certs/rds-global-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+
 # Clean base, nothing from the build stage carries over unless copied explicitly.
 FROM node:24-alpine AS runtime
 WORKDIR /app
@@ -35,6 +40,7 @@ RUN pnpm install --prod --frozen-lockfile
 # The only thing that crosses over from the build stage: compiled JS, never the TypeScript source or the compiler itself.
 # openapi.yaml is intentionally not copied here — /docs is dev-only (NODE_ENV=production disables it), so the image never reads it.
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/certs ./certs
 
 # Runs as an unprivileged user, if the process gets compromised, it can't touch anything outside what appuser explicitly owns.
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

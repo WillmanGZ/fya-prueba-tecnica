@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.6"
+  required_version = ">= 1.10"
 
   required_providers {
     aws = {
@@ -10,5 +10,13 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.6"
     }
+  }
+
+  backend "s3" {
+    bucket       = "fya-prueba-tecnica-tfstate-508575763101"
+    key          = "terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true
   }
 }

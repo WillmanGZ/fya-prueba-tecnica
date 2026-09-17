@@ -8,7 +8,7 @@ Respuestas a los casos de soporte del Anexo 1 de la prueba técnica.
 
 ### a) 3 causas de red o permisos IAM que producen este error
 
-1. **Falta de permisos IAM para leer el secreto en Secrets Manager.** El `execution_role` de la Task Definition necesita el permiso `secretsmanager:GetSecretValue`. Sin este permiso, ECS no puede inyectar las variables de entorno defididas en el secret manager.
+1. **Falta de permisos IAM para leer el secreto en Secrets Manager.** El `execution_role` de la Task Definition necesita el permiso `secretsmanager:GetSecretValue`. Sin este permiso, ECS no puede inyectar las variables de entorno definidas en el secret manager.
 
 2. **Falta de permisos IAM para autenticarse en el ECR.** El mismo `execution_role` necesita la policy `AmazonECSTaskExecutionRolePolicy` para poder hacer login en el ECR y descargar la imagen del contenedor.
 
