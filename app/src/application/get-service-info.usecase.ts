@@ -2,9 +2,15 @@ import type { InfoRepository } from "../domain/ports/info-repository.port";
 import { InfoUnavailableError } from "../domain/errors/info-unavailable.error";
 import type { ServiceInfoDto } from "./dto/service-info.dto";
 
+/** Reports whether the configured {@link InfoRepository} (Postgres in production) is reachable. */
 export class GetServiceInfoUseCase {
   constructor(private readonly infoRepository: InfoRepository) {}
 
+  /**
+   * @returns a {@link ServiceInfoDto} with `db_status: "connected"` and the
+   * repository's current time, or `db_status: "unreachable"` if the
+   * repository throws {@link InfoUnavailableError}. Any other error propagates.
+   */
   async execute(): Promise<ServiceInfoDto> {
     try {
       const now = await this.infoRepository.now();

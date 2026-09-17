@@ -1,175 +1,65 @@
-# fya-prueba-tecnica — Cloud DevOps Engineer
+# fya-prueba-tecnica — Ingeniero DevOps Cloud
 
-> 48h technical test: containerized microservice deployed on AWS Free Tier behind WAF, API Gateway, VPC Link, an internal ALB, and ECS Fargate.
+> Prueba técnica de 48h: microservicio contenerizado desplegado en AWS Free Tier detrás de WAF, API Gateway, VPC Link, un ALB interno y ECS Fargate.
 
 ```
 ===================================================================
-QUICK EVALUATION TEST DATA
+DATOS PARA PRUEBA RÁPIDA DE EVALUACIÓN
 ===================================================================
-1. Public Endpoint (API Gateway + WAF):
+1. Endpoint Público (API Gateway + WAF):
    https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/health
 
-2. AWS Console Access (IAM ReadOnly for Reviewers):
-   See the accompanying delivery document for the login URL, username, and temporary password.
+2. Acceso a Consola AWS (IAM ReadOnly para Evaluadores):
+   - URL de Login AWS: https://508575763101.signin.aws.amazon.com/console
+   - Usuario: eval-devops-reviewer
+   - Contraseña temporal: htkcps!v2*ly_znY'4Yd
+   (La contraseña es temporal — AWS exigirá cambiarla en el primer inicio de sesión. El usuario tiene permisos de solo lectura, acotados a API Gateway, WAF, ALB, ECS, ECR y CloudWatch.)
 
-3. cURL test example:
+3. Ejemplo de prueba con cURL:
    curl -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/health
    curl -i https://mslm9dwz3j.execute-api.us-east-1.amazonaws.com/api/v1/info
 ===================================================================
 ```
 
-This README documents the architecture and the decisions made, so that anyone (including the reviewer) can understand the "why" behind each component without having to guess. AWS console credentials are delivered separately, not committed here.
+## Cómo correr el proyecto localmente
 
-## Objective
-
-Design, provision, and deploy on AWS a complete architecture for a containerized web microservice, within AWS Free Tier limits, implementing the following traffic and perimeter security flow:
-
-```
-Internet → AWS WAF → API Gateway (REST) → VPC Link → Internal ALB → ECS Fargate → RDS PostgreSQL
-```
-
-## Architecture
-
-### Traffic flow overview
-
-| # | Hop | What it does | Why it exists |
-|---|---|---|---|
-| 1 | Client → API Gateway | Public HTTPS request (curl, Postman, browser) | The only point in the architecture with a public endpoint |
-| 2 | AWS WAF | Inspects the request before it reaches the API logic (regional Web ACL associated with API Gateway) | First perimeter security layer: blocks by rate-limit / geo / IP reputation before spending compute |
-| 3 | API Gateway → VPC Link (AWS PrivateLink) → NLB | Managed private tunnel into the VPC, without exposing anything to the Internet | REST APIs on API Gateway can only connect to a VPC Link via a **Network Load Balancer**, never directly to an ALB |
-| 4 | NLB → Target Group (type `alb`) → Internal ALB | The NLB forwards to the ALB registered as a target by its ARN | This is the pattern AWS requires to expose an internal ALB behind a "classic" (REST) VPC Link |
-| 5 | Internal ALB → Target Group → ECS Fargate | The `:80` listener routes to healthy tasks based on the `/health` health check | The ALB understands HTTP/HTTPS and does the real layer-7 load balancing to the containers |
-| 6 | ECS Fargate → RDS PostgreSQL | The microservice task queries the database | Persistence backend, isolated in a data subnet, only reachable from ECS |
-
-In parallel, outside the real-time traffic path, the deployment pipeline runs:
-
-```
-GitHub Actions (build/test) → Amazon ECR (push, tag = commit SHA + latest) → Amazon ECS (force-new-deployment)
-```
-
-### Why each component lives where it lives
-
-- **WAF and API Gateway** don't live inside the VPC — they're managed/multi-tenant AWS services (the "edge zone"). They have no Security Groups of their own; access control there is handled by the WAF's Web ACL.
-- **VPC Link (AWS PrivateLink)** is the bridge between that edge zone and the private network. It technically reuses the same underlying technology (PrivateLink) used later for the ECR/CloudWatch VPC Endpoints — same mechanism, two different products.
-- **Internal NLB** exists solely because the "classic" VPC Link used by REST APIs cannot point directly at an ALB. The NLB's Target Group is of type `alb` and registers the ALB's ARN (not loose IPs).
-- **Internal ALB** (`scheme: internal`) never has a public IP. It only receives traffic from the VPC Link's ENIs.
-- **ECS Fargate** runs in private subnets, with no public IP. We decided on **a single task** (no multi-AZ replicas) — see [Architecture decisions](#architecture-decisions-and-why).
-- **RDS PostgreSQL** lives in its own data subnet, with a Security Group that only accepts traffic from the ECS Security Group.
-
-### Layered isolation (Security Groups)
-
-```
-Internet
-   │
-[Edge Zone: WAF + API Gateway — no VPC, no Security Groups]
-   │  (PrivateLink / VPC Link)
-   ▼
-SG-nlb  (NLB, transport layer, no application rules)
-   ▼
-SG-alb  (ingress :80 ONLY from the VPC Link's ENIs)
-   ▼
-SG-ecs  (ingress :8080 ONLY from SG-alb)
-   ▼
-SG-db   (ingress :5432 ONLY from SG-ecs)
-```
-
-Each Security Group only allows traffic from the immediately preceding hop. Nothing is open to `0.0.0.0/0` except API Gateway itself (the intentional entry point).
-
-### VPC addressing (CIDR)
-
-```
-10.0.0.0/16        → full VPC (65,536 IPs)
-10.0.1.0/24        → private compute subnet (NLB + ALB + ECS)         AZ: us-east-1a
-10.0.2.0/24        → private data subnet (RDS)                         AZ: us-east-1a
-10.0.3.0/24        → private data subnet (RDS, required 2nd AZ)        AZ: us-east-1b
-10.0.4.0/24        → private compute subnet (ALB only, required 2nd AZ) AZ: us-east-1b
-```
-
-`10.0.0.0/16` was chosen because it's the largest available private range (RFC 1918) and the convention most commonly used in Terraform examples/modules — there is no technical requirement to use that exact range. Both RDS and the ALB require spanning **2 different AZs** — a platform requirement, not a design choice — even without RDS Multi-AZ enabled and with a single ECS task. That's why `10.0.3.0/24` and `10.0.4.0/24` exist with no active workload running in them.
-
-## Architecture decisions (and why)
-
-These are deliberate decisions to keep the project within Free Tier limits and at the right level of complexity for a 48-hour test — not accidents or oversights.
-
-- **A single Fargate task, no multi-AZ replicas.** Fargate **has no Free Tier** (it bills from the first second, per vCPU/GB-hour). Doubling tasks doubles cost without adding value to what's being evaluated. The design supports scaling to N tasks with no structural changes.
-- **RDS without the "Multi-AZ" feature enabled.** That specific RDS checkbox creates a synchronous standby replica in another AZ with automatic failover, and it **doubles the instance cost**. It's left off (default). This is different from "spanning multiple AZs," which is mandatory for the RDS Subnet Group.
-- **VPC Endpoints instead of a NAT Gateway.** ECS in private subnets needs to reach ECR, CloudWatch Logs, and Secrets Manager. A NAT Gateway bills per hour plus per GB processed and **is not covered by Free Tier**. VPC Endpoints (Gateway for S3, Interface for ECR API/DKR, CloudWatch Logs, Secrets Manager) achieve the same result without that cost.
-- **CI/CD authentication via OIDC**, not static Access Keys stored as secrets. GitHub Actions assumes a temporary IAM Role — this reduces the attack surface (no long-lived credentials to leak).
-- **Read-only IAM user for the reviewer**, separate from any operational credential, with a `ReadOnlyAccess` policy (or one scoped to API Gateway, WAF, ALB, ECS, ECR, CloudWatch).
-
-## Repository structure (planned)
-
-```
-.
-├── app/                     # Minimal API (health + info) and its Dockerfile
-│   └── infra/terraform/     # IaC: VPC, WAF, API Gateway, VPC Link, NLB, ALB, ECS, ECR, RDS, IAM
-├── .github/workflows/
-│   └── deploy.yml           # build → test → push to ECR → deploy to ECS
-├── docker-compose.yml       # local stack (app + Postgres)
-├── .env.example
-├── TROUBLESHOOTING.md       # answers to Appendix 1 (support cases)
-└── README.md
-```
-
-## Running locally
-
-Requires Docker and Docker Compose.
+Requiere Docker y Docker Compose.
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
 
-This starts Postgres and the API together — the app waits for Postgres to pass its own health check before starting (`depends_on: condition: service_healthy`), not just for the container to boot.
+Esto levanta Postgres y la API juntos — la app espera a que Postgres pase su propio health check antes de arrancar (`depends_on: condition: service_healthy`), no solo a que el contenedor inicie.
 
-Test it:
+Probarlo:
 
 ```bash
 curl -i http://localhost:8080/health
 curl -i http://localhost:8080/api/v1/info
 ```
 
-`/api/v1/info` should report `"db_status": "connected"` with a real timestamp from Postgres, confirming the full `app → Postgres` chain works end to end.
-
-## CI/CD
-
-`.github/workflows/deploy.yml` runs on every push to `main`:
-
-1. **`validate`**: installs dependencies, lints, tests, and builds the app (`app/`).
-2. **`deploy`** (only if `validate` passes): authenticates to AWS via OIDC (no long-lived credentials), builds the Docker image tagged with the commit SHA and `latest`, pushes both to ECR, and forces ECS to redeploy with the new image.
-
-After running `terraform apply` in `app/infra/terraform/`, get the values the workflow needs:
-
-```bash
-terraform output github_actions_role_arn
-terraform output ecr_repository_url
-terraform output ecs_cluster_name
-terraform output ecs_service_name
-```
-
-Set them as **repository variables** (Settings → Secrets and variables → Actions → Variables — not Secrets, none of these are sensitive):
-
-| Variable | Value |
-|---|---|
-| `AWS_ROLE_ARN` | `terraform output github_actions_role_arn` |
-| `ECR_REPOSITORY_URL` | `terraform output ecr_repository_url` |
-| `ECS_CLUSTER_NAME` | `terraform output ecs_cluster_name` |
-| `ECS_SERVICE_NAME` | `terraform output ecs_service_name` |
+`/api/v1/info` debería reportar `"db_status": "connected"` con un timestamp real de Postgres, confirmando que toda la cadena `app → Postgres` funciona de punta a punta.
 
 ## Troubleshooting
 
-See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) _(pending)_ for the answers to Appendix 1 of the technical test.
+Ver [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) para las respuestas al Anexo 1 de la prueba técnica.
 
-## Project status
+## Estado del proyecto
 
-- [x] Requirements analysis and target architecture
-- [x] Architecture diagram (full flow + Security Groups)
-- [x] Network design in Terraform (VPC, subnets, endpoints)
-- [x] Minimal API + Dockerfile (hexagonal, TS, tests, multi-stage build — verified end to end with `docker compose up`)
-- [x] ECS Fargate + ECR + ALB + NLB + Target Groups (Terraform written; not yet applied — no image pushed to ECR)
-- [x] API Gateway + VPC Link + WAF (Terraform written; not yet applied)
-- [x] RDS PostgreSQL (Terraform written; not yet applied — Secrets Manager wired into the ECS task definition)
-- [x] GitHub Actions pipeline (OIDC) (workflow + Terraform OIDC role written; not yet run — repo variables not set)
-- [x] Read-only IAM user for evaluation (Terraform written; not yet applied — scoped to API Gateway, WAF, ALB, ECS, ECR, CloudWatch)
-- [ ] TROUBLESHOOTING.md (Appendix 1)
-- [ ] Final deployment and access data in this README
+- [x] Análisis de requisitos y arquitectura objetivo
+- [x] Diagrama de arquitectura (flujo completo + Security Groups)
+- [x] Diseño de red en Terraform (VPC, subnets, endpoints)
+- [x] API mínima + Dockerfile (hexagonal, TS, tests, multi-stage build — verificado de punta a punta con `docker compose up`)
+- [x] ECS Fargate + ECR + ALB + NLB + Target Groups (desplegado y en funcionamiento)
+- [x] API Gateway + VPC Link + WAF (desplegado y en funcionamiento)
+- [x] RDS PostgreSQL (desplegado, conectado por TLS, verificado de punta a punta vía `/api/v1/info`)
+- [x] Pipeline de GitHub Actions (OIDC) (desplegado exitosamente — build, push y redeploy de ECS funcionando)
+- [x] Usuario IAM de solo lectura para evaluación (desplegado — credenciales en el README)
+- [x] TROUBLESHOOTING.md (Anexo 1)
+- [x] Datos finales de despliegue y acceso en el README
+
+## Más información
+
+- [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) — arquitectura de AWS, estructura del repositorio, CI/CD y estado del proyecto.
+- [app/README.md](./app/README.md) — detalle de implementación de la API (arquitectura hexagonal, variables de entorno, tests).

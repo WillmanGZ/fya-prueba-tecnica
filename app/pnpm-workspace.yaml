@@ -3,4 +3,5 @@ overrides:
   proxy-addr: "2.0.7"
 
 allowBuilds:
+  '@scarf/scarf': false
   esbuild: true

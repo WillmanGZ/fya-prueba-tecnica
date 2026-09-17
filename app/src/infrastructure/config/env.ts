@@ -10,9 +10,13 @@ export interface EnvConfig {
   };
 }
 
-// A function, not an eagerly-evaluated object — reading process.env at import
-// time makes it impossible to test different scenarios (the value is fixed
-// the moment the module first loads).
+/**
+ * Reads and normalizes the process environment into an {@link EnvConfig}.
+ *
+ * A function, not an eagerly-evaluated object — reading process.env at import
+ * time makes it impossible to test different scenarios (the value is fixed
+ * the moment the module first loads).
+ */
 export function loadEnv(): EnvConfig {
   return {
     port: Number(process.env.PORT ?? 8080),

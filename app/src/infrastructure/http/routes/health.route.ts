@@ -4,8 +4,14 @@ import { ok } from "../api-response";
 
 export const healthRouter = Router();
 
-// Must never touch the database: a slow/down Postgres would otherwise make
-// the ALB target group mark this task unhealthy and kill it for no reason.
+/**
+ * GET /health — liveness check.
+ *
+ * Must never touch the database: a slow/down Postgres would otherwise make
+ * the ALB target group mark this task unhealthy and kill it for no reason.
+ *
+ * @returns 200 with `{ status: "ok", timestamp }`.
+ */
 healthRouter.get("/health", (_req, res) => {
   res.status(200).json(ok<HealthDto>({ status: "ok", timestamp: new Date().toISOString() }));
 });

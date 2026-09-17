@@ -26,6 +26,7 @@ RUN pnpm install --prod --frozen-lockfile
 
 # The only thing that crosses over from the build stage: compiled JS, never the TypeScript source or the compiler itself.
 COPY --from=build /app/dist ./dist
+COPY openapi.yaml ./openapi.yaml
 
 # Runs as an unprivileged user, if the process gets compromised, it can't touch anything outside what appuser explicitly owns.
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

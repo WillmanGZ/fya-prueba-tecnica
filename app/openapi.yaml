@@ -1,0 +1,111 @@
+openapi: 3.0.3
+info:
+  title: fya-prueba-tecnica API
+  description: Minimal health/info microservice for the AWS DevOps Cloud technical test.
+  version: "1.0.0"
+paths:
+  /health:
+    get:
+      summary: Liveness check
+      description: >
+        Never touches the database — used by the ALB target group and the Docker
+        HEALTHCHECK to decide if the process itself is alive, independent of
+        downstream dependencies.
+      responses:
+        "200":
+          description: The process is alive.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiSuccessHealth"
+              example:
+                success: true
+                data:
+                  status: ok
+                  timestamp: "2026-09-16T12:00:00.000Z"
+  /v1/info:
+    get:
+      summary: Database connectivity check
+      description: >
+        Queries Postgres (SELECT NOW()) to prove the full app-to-database chain
+        works, not just that the process is up.
+      responses:
+        "200":
+          description: Database reachable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiSuccessInfo"
+              example:
+                success: true
+                data:
+                  db_status: connected
+                  db_time: "2026-09-16T12:00:00.000Z"
+        "503":
+          description: >
+            Database unreachable. Still returned as `success: true` — this is a
+            reported fact about the database's state, not a failure of the
+            endpoint itself, which the `db_status` field already communicates.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiSuccessInfo"
+              example:
+                success: true
+                data:
+                  db_status: unreachable
+                  db_time: null
+components:
+  schemas:
+    HealthDto:
+      type: object
+      required: [status, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        timestamp:
+          type: string
+          format: date-time
+    ServiceInfoDto:
+      type: object
+      required: [db_status, db_time]
+      properties:
+        db_status:
+          type: string
+          enum: [connected, unreachable]
+        db_time:
+          type: string
+          format: date-time
+          nullable: true
+    ApiSuccessHealth:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: "#/components/schemas/HealthDto"
+    ApiSuccessInfo:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: "#/components/schemas/ServiceInfoDto"
+    ApiErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        error:
+          type: object
+          required: [message]
+          properties:
+            message:
+              type: string
