@@ -28,6 +28,8 @@ DATOS PARA PRUEBA RÁPIDA DE EVALUACIÓN
 ===================================================================
 ```
 
+> **Nota:** la infraestructura de AWS descrita arriba (API Gateway, WAF, ALB/NLB, ECS Fargate, RDS, VPC, usuario de evaluación IAM, etc.) fue destruida con `terraform destroy` tras la evaluación para evitar costos innecesarios. Los endpoints y las credenciales de acceso a la consola que se muestran arriba ya no son válidos.
+
 ## Cómo correr el proyecto localmente
 
 Requiere Docker y Docker Compose.
